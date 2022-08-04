@@ -7,13 +7,13 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  test:
     strategy:
       matrix:
         include:
           - image: erlang:24
           - image: erlang:25
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     container:
       image: ${{ matrix.image }}
       options: "--entrypoint /bin/bash"
@@ -35,7 +35,7 @@ jobs:
         run: rebar3 compile
 
       - name: Run tests
-        run: rebar3 test
+        run: rebar3 ci_test
       - name: Store test logs
         uses: actions/upload-artifact@v1
         if: always()
@@ -43,9 +43,8 @@ jobs:
           name: ct-logs
           path: _build/test/logs
 
-      - name: Create test summary
-        uses: test-summary/action@v1
-        if: always()
+      - name: Publish Test Report
+        uses: nomasystems/action-junit-report@v2
         with:
-          paths: '_build/test/logs/**/report.xml'
+          report_paths: '_build/test/logs/**/report.xml'
 
