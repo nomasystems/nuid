@@ -22,7 +22,7 @@
 -type mins() :: 0..59.
 -type secs() :: 0..59.
 
--type date() :: {pos_integer(), month(), day()}.
+-type date() :: {non_neg_integer(), month(), day()}.
 -type datetime() :: {date(), time()}.
 -type ip() :: {0..255, 0..255, 0..255, 0..255}.
 -type id() :: non_neg_integer().
