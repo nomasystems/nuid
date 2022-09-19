@@ -66,6 +66,10 @@ properties(Conf) ->
     ct_property_test:quickcheck(
         nuid_properties:properties(order),
         Conf
+    ),
+    ct_property_test:quickcheck(
+        nuid_properties:properties(uuid6_nuid1_compatibility),
+        Conf
     ).
 
 uuid() ->

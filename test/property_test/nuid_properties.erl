@@ -19,50 +19,80 @@
 %%% EXPORTS
 -compile([export_all, nowarn_export_all]).
 
+%%% MACROS
+-define(UUID_TYPES, [uuid1, uuid2, uuid3, uuid4, uuid5, uuid6, uuid7, nuid1, nuid2]).
+
 %%-----------------------------------------------------------------------------
 %%% PROPERTIES
 %%%-----------------------------------------------------------------------------
--type option() :: uniqueness | order.
-
+-type option() :: uniqueness | order | uuid6_nuid1_compatibility.
 
 %%% Tests two properties:
-%%% 1.- uniqueness.
+%%% 1.- uniqueness
 %%% 2.- order
+%%% 3.- uuid6 and nuid1 compatibility
 -spec properties(option()) -> term().
 properties(uniqueness) ->
     ?FORALL(
-        Nuid,
-        nuid:nuid2(),
+        UUIDType,
+        triq_dom:elements(?UUID_TYPES),
         begin
-            NewerNuid = nuid:nuid2(),
-            Different = NewerNuid /= Nuid,
-            Result = case Different of
-                         true ->
-                             true;
-                         false ->
-                             io:format("Expected newer nuid ~p to be different than: ~p~n",
-                                       [NewerNuid, Nuid]),
-                             false
-                     end,
+            OldUUID = nuid:UUIDType(),
+            NewUUID = nuid:UUIDType(),
+            Different = NewUUID /= OldUUID,
+            Result =
+                case Different of
+                    true ->
+                        true;
+                    false ->
+                        io:format(
+                            "Expected newer nuid ~p to be different than: ~p~n",
+                            [NewUUID, OldUUID]
+                        ),
+                        false
+                end,
             Result == true
         end
     );
 properties(order) ->
     ?FORALL(
-        Nuid,
-        nuid:nuid2(),
+        UUIDType,
+        triq_dom:elements(?UUID_TYPES),
         begin
-            NewerNuid = nuid:nuid2(),
-            Greater = NewerNuid > Nuid,
-            Result = case Greater of
-                         true ->
-                             true;
-                         false ->
-                             io:format("Expected newer nuid ~p to be greater than: ~p~n",
-                                       [NewerNuid, Nuid]),
-                             false
-                     end,
+            OldUUID = nuid:UUIDType(),
+            NewUUID = nuid:UUIDType(),
+            Greater = NewUUID > OldUUID,
+            Result =
+                case Greater of
+                    true ->
+                        true;
+                    false ->
+                        io:format(
+                            "Expected newer nuid ~p to be greater than: ~p~n",
+                            [NewUUID, OldUUID]
+                        ),
+                        false
+                end,
+            Result == true
+        end
+    );
+properties(uuid6_nuid1_compatibility) ->
+    ?FORALL(
+        {UUID6, NUID1},
+        {nuid:uuid6(), nuid:nuid1()},
+        begin
+            Greater = NUID1 > UUID6,
+            Result =
+                case Greater of
+                    true ->
+                        true;
+                    false ->
+                        io:format(
+                            "Expected nuid1 ~p to be greater than uuid6 ~p~n",
+                            [NUID1, UUID6]
+                        ),
+                        false
+                end,
             Result == true
         end
     ).
-

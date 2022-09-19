@@ -15,7 +15,7 @@
 -module(nuid).
 
 %%% INCLUDE FILES
--include("nuid.hrl").
+-include_lib("nuid/include/nuid.hrl").
 
 %%% EXTERNAL EXPORTS
 %RFC 4122
@@ -31,7 +31,6 @@
 -define(JANUARY_1ST_1970, 62167219200).
 -define(INTEGER_38_BIT_WRAP, 274877906944).
 -define(BIT24_SPACE, 16777216).
--define(BITS24, 24).
 -define(RAND_BYTES, 16).
 
 -define(V1, 1).
@@ -48,8 +47,6 @@
 
 -define(HEX(X), X + $0 + (39 * (X div 10))).
 -define(INT(X), ((X - $0) - ((X div $A) * 7) - ((X div $a) * 32))).
-
-%%% RECORDS
 
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL EXPORTS
@@ -143,8 +140,13 @@ nuid1() ->
     <<TimeBin/binary, "-", RandBase64/binary>>.
 
 nuid1_info(<<HexTime:13/binary, "-", _Rand/binary>>) ->
-    Time = erlang:binary_to_integer(HexTime, 16),
-    calendar:gregorian_seconds_to_datetime((Time div 1000000) + ?JANUARY_1ST_1970).
+    RawTime = erlang:binary_to_integer(HexTime, 16),
+    case RawTime of
+        Time when Time > 0 ->
+            calendar:gregorian_seconds_to_datetime((Time div 1000000) + ?JANUARY_1ST_1970);
+        _Error ->
+            erlang:throw({error, badarg})
+    end.
 
 nuid2() ->
     Timestamp = erlang:system_time(seconds),
