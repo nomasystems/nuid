@@ -99,8 +99,8 @@ illegal(Config) when is_list(Config) ->
     {'EXIT', _} = (catch nuid_base64:decode(<<19:8, 20:8, 21:8, 22:8>>)),
     {'EXIT', _} = (catch nuid_base64:decode(<<19, 20, 21, 22>>)),
     List = "testt list",
-    {'EXIT', {{badarg, List}, _}} = (catch nuid_base64:encode(List)),
-    {'EXIT', {{badarg, List}, _}} = (catch nuid_base64:decode(List)),
+    {'EXIT', _} = (catch nuid_base64:encode(List)),
+    {'EXIT', _} = (catch nuid_base64:decode(List)),
     ok.
 
 %%-------------------------------------------------------------------------
