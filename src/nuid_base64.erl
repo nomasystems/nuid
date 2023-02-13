@@ -35,10 +35,8 @@
     Data :: binary(),
     Base64 :: base64_binary().
 
-encode(Bin) when is_binary(Bin) ->
-    encode_binary(Bin, <<>>);
-encode(List) when is_list(List) ->
-    error({badarg, List}).
+encode(Bin) ->
+    encode_binary(Bin, <<>>).
 
 encode_binary(<<>>, A) ->
     A;
@@ -61,10 +59,8 @@ encode_binary(<<B1:8, B2:8, B3:8, Ls/bits>>, A) ->
     Base64 :: base64_binary(),
     Data :: binary().
 
-decode(Bin) when is_binary(Bin) ->
-    decode_binary(Bin, <<>>);
-decode(List) when is_list(List) ->
-    error({badarg, List}).
+decode(Bin) ->
+    decode_binary(Bin, <<>>).
 
 decode_binary(<<C1:8, Cs/bits>>, A) ->
     decode_binary(Cs, A, b64d(C1));
