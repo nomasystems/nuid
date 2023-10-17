@@ -117,6 +117,8 @@ We also came up with nuid1, having just these properties
 | `nuid:uuid7/0` | Generates draft-ietf-uuidrev-rfc4122bis uuid v7 |
 | `nuid:uuid8/1` | Generates draft-ietf-uuidrev-rfc4122bis uuid v8 |
 | `nuid:uuid8/3` | Generates draft-ietf-uuidrev-rfc4122bis uuid v8 |
+| `nuid:nil_uuid/0` | Generates RFC 4122 nil uuid |
+| `nuid:max_uuid/0` | Generates draft-ietf-uuidrev-rfc4122bis max uuid |
 | `nuid:uuid1_info/1` | Gets info from uuid1 (generation time, node, unique) |
 | `nuid:uuid6_info/1` | Gets info from uuid6 (generation time, node, unique) |
 | `nuid:uuid7_info/1` | Gets info from uuid7 (generation time) |
@@ -158,6 +160,10 @@ We also came up with nuid1, having just these properties
 {{2023,10,17},{11,52,8}}
 13> nuid:nuid2_info(nuid:nuid2()).
 {nonode@nohost,{{2023,10,17},{11,52,8}}}
+14> nuid:nil_uuid(nuid:nuid2()).
+<<"00000000-0000-0000-0000-000000000000">>
+15> nuid:max_uuid(nuid:nuid2()).
+<<"FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF">>.
 ```
 
 ## Benchmarks
