@@ -153,6 +153,16 @@ uuid(_Conf) ->
     UUID7Info = nuid:uuid7_info(UUID7Key),
     ct:print("UUID7 Info: ~p", [UUID7Info]),
 
+    %v8
+    UUID8 = nuid:uuid8(
+        <<16#f, 16#e, 16#d, 16#c, 16#b, 16#a, 16#9, 16#8, 16#7, 16#6, 16#5, 16#4, 16#3, 16#2, 16#1,
+            16#0>>
+    ),
+    true = <<"0f0e0d0c-0b0a-8908-8706-050403020100">> == UUID8,
+
+    true = <<"00000000-0000-0000-0000-000000000000">> == nuid:nil_uuid(),
+    true = <<"FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF">> == nuid:max_uuid(),
+
     ok.
 
 nuid() ->

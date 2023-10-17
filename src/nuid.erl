@@ -20,9 +20,11 @@
 %%% EXTERNAL EXPORTS
 %RFC 4122
 -export([uuid1/0, uuid3/2, uuid4/0, uuid5/2]).
-% New UUID Formats. draft-peabody-dispatch-new-uuid-format-04
--export([uuid6/0, uuid7/0]).
+% New UUID Formats. draft-ietf-uuidrev-rfc4122bis
+-export([uuid6/0, uuid7/0, uuid8/1, uuid8/3]).
 -export([uuid1_info/1, uuid6_info/1, uuid7_info/1]).
+
+-export([nil_uuid/0, max_uuid/0]).
 
 -export([nuid1/0, nuid1_info/1]).
 -export([nuid2/0, nuid2_info/1]).
@@ -40,7 +42,7 @@
 -define(V5, 5).
 -define(V6, 6).
 -define(V7, 7).
-% -define(V8, 8). %%Not will be used at the moment
+-define(V8, 8).
 
 -define(PRECISION, 16).
 -define(VARIANT, 2).
@@ -125,6 +127,21 @@ uuid7() ->
 
 uuid7_info(Bin) ->
     uuid_info(Bin, uuid7).
+
+uuid8(<<CustomA:48, _Ver:4, CustomB:12, _Var:2, CustomC:62>>) ->
+    uuid8(CustomA, CustomB, CustomC).
+
+uuid8(CustomA, CustomB, CustomC) ->
+    format_uuid(<<CustomA:48, ?V8:4, CustomB:12, ?VARIANT:2, CustomC:62>>, 0, []).
+
+%%%-----------------------------------------------------------------------------
+%%% EXTERNAL NIL and ZERO FUNCTIONS
+%%%-----------------------------------------------------------------------------
+nil_uuid() ->
+    <<"00000000-0000-0000-0000-000000000000">>.
+
+max_uuid() ->
+    <<"FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF">>.
 
 %%%-----------------------------------------------------------------------------
 %%% EXTERNAL PROPOSED FUNCTIONS
