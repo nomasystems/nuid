@@ -113,8 +113,12 @@ We also came up with nuid1, having just these properties
 | `nuid:uuid3/2` | Generates RFC 4122 uuid v3 |
 | `nuid:uuid4/0` | Generates RFC 4122 uuid v4 |
 | `nuid:uuid5/2` | Generates RFC 4122 uuid v5 |
-| `nuid:uuid6/0` | Generates draft-peabody-dispatch-new-uuid-format-04 uuid v6 |
-| `nuid:uuid7/0` | Generates draft-peabody-dispatch-new-uuid-format-04 uuid v6 |
+| `nuid:uuid6/0` | Generates draft-ietf-uuidrev-rfc4122bis uuid v6 |
+| `nuid:uuid7/0` | Generates draft-ietf-uuidrev-rfc4122bis uuid v7 |
+| `nuid:uuid8/1` | Generates draft-ietf-uuidrev-rfc4122bis uuid v8 |
+| `nuid:uuid8/3` | Generates draft-ietf-uuidrev-rfc4122bis uuid v8 |
+| `nuid:nil_uuid/0` | Generates RFC 4122 nil uuid |
+| `nuid:max_uuid/0` | Generates draft-ietf-uuidrev-rfc4122bis max uuid |
 | `nuid:uuid1_info/1` | Gets info from uuid1 (generation time, node, unique) |
 | `nuid:uuid6_info/1` | Gets info from uuid6 (generation time, node, unique) |
 | `nuid:uuid7_info/1` | Gets info from uuid7 (generation time) |
@@ -131,29 +135,35 @@ We also came up with nuid1, having just these properties
 
 ```erl
 1> nuid:uuid1().
-<<"e2dfd6de-1a8c-1050-8000-00001430cc44">>
+<<"07e826fe-ed86-1060-8000-00001430cc44">>
 2> nuid:uuid3(url, <<"https://www.nomasystems.com">>).
 <<"67805345-d49e-3058-9ad3-160686e8ee2a">>
 3> nuid:uuid4().                                      
-<<"c0a072d8-a60d-4f8b-9da8-a03205447f55">>
+<<"37a9e737-f680-44a9-b83d-a517ec758b75">>
 4> nuid:uuid5(dns, <<"nomasystems.com">>).
 <<"cefe05b2-95ca-5b0a-ad06-9b3f2b38e532">>
 5> nuid:uuid6().                         
-<<"05e2dfda-f616-6b60-8000-00002430cc44">>
+<<"0607e826-ff71-6410-8000-00002430cc44">>
 6> nuid:uuid7().
-<<"0181c286-10cb-7083-a53c-7bd6c4ef7bab">>
-7> nuid:nuid1().
-<<"5e2dfdc12ef84-wUKoLPkJLj77JtNVoC3oJ-">>
-8> nuid:nuid2().
-<<"Ng3cUk----Fkn3GRj5J0gLhQOgAkc8C-It88">>
-9> nuid:uuid1_info(nuid:uuid1()).
-{uuidInfo,{{2022,7,3},{5,26,59}},5,nonode@nohost}
-10> nuid:uuid6_info(nuid:uuid6()).
-{uuidInfo,{{2022,7,3},{5,27,12}},6,nonode@nohost}
-11> nuid:nuid1_info(nuid:nuid1()).
-{{2022,7,3},{5,27,28}}
-12> nuid:nuid2_info(nuid:nuid2()).
-{nonode@nohost,{{2022,7,3},{5,27,34}}}
+<<"018b3d7a-9f9a-7577-adb2-08761e3d87f7">>
+7> nuid:uuid8(<<16#f, 16#e, 16#d, 16#c, 16#b, 16#a, 16#9, 16#8, 16#7, 16#6, 16#5, 16#4, 16#3, 16#2, 16#1, 16#0>>).
+<<"0f0e0d0c-0b0a-8908-8706-050403020100">>
+8> nuid:nuid1().
+<<"607e826ff7388-4WX7g2peZpWw9QAIpkRp-F">>
+9> nuid:nuid2().
+<<"OHtpP-----Fkn3F6JaT5Kxnm_NAiDzFgGMzc">>
+10> nuid:uuid1_info(nuid:uuid1()).
+{uuidInfo,{{2023,10,17},{11,52,8}},5,nonode@nohost}
+11> nuid:uuid6_info(nuid:uuid6()).
+{uuidInfo,{{2023,10,17},{11,52,8}},6,nonode@nohost}
+12> nuid:nuid1_info(nuid:nuid1()).
+{{2023,10,17},{11,52,8}}
+13> nuid:nuid2_info(nuid:nuid2()).
+{nonode@nohost,{{2023,10,17},{11,52,8}}}
+14> nuid:nil_uuid(nuid:nuid2()).
+<<"00000000-0000-0000-0000-000000000000">>
+15> nuid:max_uuid(nuid:nuid2()).
+<<"FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF">>.
 ```
 
 ## Benchmarks
