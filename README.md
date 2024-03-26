@@ -1,5 +1,5 @@
 # nuid
-![nuid](https://github.com/nomasystems/nuid/actions/workflows/build.yml/badge.svg)
+[![nuid](https://github.com/nomasystems/nuid/actions/workflows/ci.yml/badge.svg)](https://github.com/nomasystems/nuid/actions/workflows/ci.yml)
 
 `nuid` is an OTP library to generate unique identifiers.
 
