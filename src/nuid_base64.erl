@@ -30,6 +30,7 @@
 %% -type base64_alphabet() :: $A..$Z | $a..$z | $0..$9 | $- | $_.
 %% Section 4, `urlsafe'  for RFC 4648 Section 5.
 %% It's been reordered to be lexicographically sortable.
+%% Padding is the dot.
 
 %% The following type is a subtype of string() for return values
 %% of encoding functions.
@@ -61,12 +62,12 @@ encode_binary(<<B1:6, B2:6, B3:6, B4:6, Ls/bits>>, A) ->
 encode_binary(<<B1:6, B2:2>>, A) ->
     E1 = b64e(B1),
     E2 = b64e(B2 bsl 4),
-    <<A/bits, E1, E2, $=, $=>>;
+    <<A/bits, E1, E2>>;
 encode_binary(<<B1:6, B2:6, B3:4>>, A) ->
     E1 = b64e(B1),
     E2 = b64e(B2),
     E3 = b64e(B3 bsl 2),
-    <<A/bits, E1, E2, E3, $=>>.
+    <<A/bits, E1, E2, E3>>.
 
 %% mime_decode strips away all characters not Base64 before
 %% converting, whereas decode crashes if an illegal character is found
@@ -106,23 +107,14 @@ decode_binary(<<C2:8, Cs/bits>>, A, B1) ->
 decode_binary(<<C3:8, Cs/bits>>, A, B1, B2) ->
     B3 = b64d(C3),
     decode_binary(Cs, A, B1, B2, B3);
-decode_binary(<<_Cs/bits>>, _A, _B1, _B2) ->
-    missing_padding_error().
+decode_binary(<<>>, A, B1, B2) ->
+    <<A/bits, B1:6, (B2 bsr 4):2>>.
 
 decode_binary(<<C4:8, Cs/bits>>, A, B1, B2, B3) ->
     B4 = b64d(C4),
     decode_binary(Cs, <<A/bits, B1:6, B2:6, B3:6, B4:6>>);
-decode_binary(<<>>, _A, _B1, _B2, _B3) ->
-    missing_padding_error().
-
-%%%========================================================================
-%%% Error handling functions
-%%%========================================================================
-
-% always inlined for useful stacktraces when called in tail position
--compile({inline, missing_padding_error/0}).
-missing_padding_error() ->
-    error(missing_padding, none, [{error_info, #{}}]).
+decode_binary(<<>>, A, B1, B2, B3) ->
+    <<A/bits, B1:6, B2:6, (B3 bsr 2):4>>.
 
 %%%========================================================================
 
@@ -219,3 +211,36 @@ b64e(X) ->
             $z
         }
     ).
+
+%%-----------------------------------------------------------------------
+%% Code to generate decode table
+%%-----------------------------------------------------------------------
+%% code({value, {Pos, _Value}}) ->
+%%     Pos;
+%% code(_) ->
+%%     bad.
+%% 
+%% alphabet_pos([], _Pos, Acc) ->
+%%     lists:reverse(Acc);
+%% alphabet_pos([Char | Rest], Pos, Acc) ->
+%%     alphabet_pos(Rest, Pos + 1, [{Pos, Char} | Acc]).
+%% 
+%% decode_tuple(AlphabetPos) ->
+%%     Seq = lists:seq(1, 256),
+%%     decode_tuple(AlphabetPos, Seq, []).
+%% 
+%% 
+%% decode_tuple(_AlphabetPos, [], Acc) ->
+%%     list_to_tuple(lists:reverse(Acc));
+%% decode_tuple(AlphabetPos, [Char | Rest], Acc) ->
+%%     Value = code(lists:keysearch(Char, 2, AlphabetPos)),
+%%     decode_tuple(AlphabetPos, Rest, [Value | Acc]).
+%% 
+%% decode_table() ->
+%%     Alphabet = [$-, $0, $1, $2, $3, $4, $5, $6, $7, $8, $9,
+%%          $A, $B, $C, $D, $E, $F, $G, $H, $I, $J, $K, $L, $M, $N,
+%%          $O, $P, $Q, $R, $S, $T, $U, $V, $W, $X, $Y, $Z,
+%%          $_, $a, $b, $c, $d, $e, $f, $g, $h, $i, $j, $k, $l, $m, $n,
+%%          $o, $p, $q, $r, $s, $t, $u, $v, $w, $x, $y, $z],
+%%     AlphabetPos = alphabet_pos(Alphabet, 0, []),
+%%     decode_tuple(AlphabetPos).
