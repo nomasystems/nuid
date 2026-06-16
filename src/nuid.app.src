@@ -1,14 +1,20 @@
 {application, nuid, [
-    {description, "OTP library to generate unique identifiers"},
+    {description,
+        "Unique identifier generation for Erlang/OTP: RFC 4122/9562 UUIDs and sortable nuids"},
     {vsn, "1.0.0"},
     {registered, []},
     {applications, [
         kernel,
-        stdlib
+        stdlib,
+        crypto
     ]},
     {env, []},
     {modules, []},
-
-    {licenses, ["Apache 2.0"]},
-    {links, []}
+    {licenses, ["Apache-2.0"]},
+    {maintainers, ["Nomasystems"]},
+    {minimum_otp_vsn, "27"},
+    {links, [
+        {"GitHub", "https://github.com/nomasystems/nuid"},
+        {"Changelog", "https://github.com/nomasystems/nuid/blob/main/CHANGELOG.md"}
+    ]}
 ]}.

@@ -17,9 +17,31 @@
 %%
 %% %CopyrightEnd%
 %%
+%% Modifications:
+%%   Copyright Nomasystems 2022-2024. Licensed under Apache-2.0.
+%%   Derived from the OTP `base64` module. The alphabet has been
+%%   reordered so the encoding preserves input byte ordering, and
+%%   padding has been removed.
+%%
 %% Description: Implements base 64 encode and decode. See RFC4648.
 
 -module(nuid_base64).
+-moduledoc """
+Sortable, URL-safe base64 codec.
+
+A variant of the OTP `base64` module ([RFC 4648](https://www.rfc-editor.org/rfc/rfc4648))
+whose alphabet is reordered so that the encoding preserves the byte
+ordering of the input: if `A < B` then `encode(A) < encode(B)`. The
+alphabet, in order, is:
+
+```
+-, 0-9, A-Z, _, a-z
+```
+
+This is the encoding used by `nuid:nuid1/0` and `nuid:nuid2/0`. There is
+no padding.
+""".
+-moduledoc #{authors => ["Ericsson AB", "Nomasystems"]}.
 
 -export([
     encode/1,

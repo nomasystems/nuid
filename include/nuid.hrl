@@ -16,24 +16,21 @@
 -define(nuid, true).
 
 %%% TYPES
--type day() :: 1..31.
 -type month() :: 1..12.
+-type day() :: 1..31.
 -type hour() :: 0..23.
 -type mins() :: 0..59.
 -type secs() :: 0..59.
 
 -type date() :: {non_neg_integer(), month(), day()}.
--type datetime() :: {date(), time()}.
--type ip() :: {0..255, 0..255, 0..255, 0..255}.
--type id() :: non_neg_integer().
 -type time() :: {hour(), mins(), secs()}.
--type guid() :: binary().
+-type datetime() :: {date(), time()}.
 
 %%% RECORDS
 -record(uuidInfo, {
     date :: datetime(),
     id :: integer(),
-    node :: atom()
+    node :: node()
 }).
 
 % -ifndef(nuid)

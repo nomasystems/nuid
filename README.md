@@ -1,49 +1,85 @@
 # nuid
-[![nuid](https://github.com/nomasystems/nuid/actions/workflows/ci.yml/badge.svg)](https://github.com/nomasystems/nuid/actions/workflows/ci.yml)
 
-`nuid` is an OTP library to generate unique identifiers.
+[![Hex.pm](https://img.shields.io/hexpm/v/nuid.svg)](https://hex.pm/packages/nuid)
+[![CI](https://github.com/nomasystems/nuid/actions/workflows/ci.yml/badge.svg)](https://github.com/nomasystems/nuid/actions/workflows/ci.yml)
 
-## Setup
+Unique identifier generation for Erlang/OTP 27+: RFC 4122 and RFC 9562 UUIDs, plus sortable `nuid` identifiers.
 
-Add `nuid` to your project dependencies.
+## Getting started
 
-```erl
-%%% e.g., rebar.config
-{deps, [
-    {nuid, {git, "git@github.com:nomasystems/nuid.git", {branch, "main"}}}
-]}.
+```erlang
+%% rebar.config
+{deps, [nuid]}.
+```
+
+```erlang
+1> nuid:uuid4().
+<<"37a9e737-f680-44a9-b83d-a517ec758b75">>
+2> nuid:uuid7().
+<<"018b3d7a-9f9a-7577-adb2-08761e3d87f7">>
+3> nuid:nuid2().
+<<"OHtpP-----Fkn3F6JaT5Kxnm_NAiDzFgGMzc">>
+4> nuid:uuid7_info(nuid:uuid7()).
+{{2023,10,17},{11,52,8}}
 ```
 
 ## Features
 
-Traditionally we've been using uuid1 as defined on [rfc4122](https://datatracker.ietf.org/doc/html/rfc4122) and later we transitioned to uuid6 as defined on [draft-peabody-dispatch-new-uuid-format](https://datatracker.ietf.org/doc/html/draft-peabody-dispatch-new-uuid-format).
+- **RFC 4122 UUIDs** versions 1, 3 (MD5), 4, and 5 (SHA-1) ([RFC 4122](https://www.rfc-editor.org/rfc/rfc4122))
+- **RFC 9562 UUIDs** versions 6, 7, and 8 ([RFC 9562](https://www.rfc-editor.org/rfc/rfc9562))
+- **Nil and max UUIDs**
+- **`nuid1` and `nuid2`** sortable identifiers with 128 bits of cryptographically strong randomness
+- **Info recovery** creation time and originating node from generated identifiers
+- **No dependencies** only OTP `kernel`, `stdlib`, and `crypto`
 
-The latest is preferred since it can be ordered by the time of creation.
+## API
 
-Recently we had the necessity of having identifiers with more entropy. Specifically, after a security revision, we've been requested to use at least the same random bits as uuid4 (122). With that in mind, we started searching for standards covering these requirements:
+| Function | Description |
+| -------- | ----------- |
+| `nuid:uuid1/0` | RFC 4122 UUID v1 |
+| `nuid:uuid3/2` | RFC 4122 UUID v3 (MD5, name-based) |
+| `nuid:uuid4/0` | RFC 4122 UUID v4 (random) |
+| `nuid:uuid5/2` | RFC 4122 UUID v5 (SHA-1, name-based) |
+| `nuid:uuid6/0` | RFC 9562 UUID v6 (time-ordered) |
+| `nuid:uuid7/0` | RFC 9562 UUID v7 (time-ordered) |
+| `nuid:uuid8/1`, `nuid:uuid8/3` | RFC 9562 UUID v8 (vendor-specific) |
+| `nuid:nil_uuid/0` | RFC 4122 nil UUID |
+| `nuid:max_uuid/0` | RFC 9562 max UUID |
+| `nuid:nuid1/0` | `nuid1` identifier |
+| `nuid:nuid2/0` | `nuid2` identifier |
+| `nuid:uuid1_info/1`, `nuid:uuid6_info/1` | Generation time, node, and counter |
+| `nuid:uuid7_info/1`, `nuid:nuid1_info/1` | Generation time |
+| `nuid:nuid2_info/1` | Generation time and node |
 
-Must be able to order identifiers by the time of creation.
-Identifiers must have at least 122 bits of cryptographically strong random numbers.
+## The nuid identifiers
 
-- Some optional requirements would make the identifiers more appealing:
-- Being unique (at least having a low collision probability).
-- Carry information about where the identifier has been created.
+We have historically used UUID v1 ([RFC 4122](https://datatracker.ietf.org/doc/html/rfc4122))
+and later UUID v6 ([RFC 9562](https://www.rfc-editor.org/rfc/rfc9562)),
+preferring v6 because it can be ordered by creation time.
 
-We found these two great de-facto standards: 
-- [ulid](https://github.com/ulid/spec)
-- [ksuid](https://github.com/segmentio/ksuid)
+A later security review required identifiers with at least as many
+cryptographically strong random bits as UUID v4 (122). The requirements were:
 
-But they lack the second requirement, the one about 122 bits of cryptographically strong random numbers. So we came up with nuid2. 
+- Orderable by creation time.
+- At least 122 bits of cryptographically strong randomness.
 
-nuid2 has these properties:
+With, optionally:
+
+- Uniqueness (or at least a low collision probability).
+- Information about where the identifier was created.
+
+The two de facto standards we looked at, [ulid](https://github.com/ulid/spec)
+and [ksuid](https://github.com/segmentio/ksuid), do not meet the randomness
+requirement, so we defined `nuid2`.
+
+`nuid2` properties:
 
 - Lexicographically sortable.
-- Sixteen cryptographically strong random bytes. (128bits)
-- It is unique (at least has a low collision probability).
-- It carries 3 bytes of information reserved for origin information.
-- No longer than uuid (36 bytes)
-- URL safe
-
+- Sixteen cryptographically strong random bytes (128 bits).
+- Unique (or at least a low collision probability).
+- Carries 3 bytes reserved for origin information.
+- No longer than a UUID (36 characters).
+- URL-safe.
 
 ```
  0                   1                   2                   3
@@ -64,14 +100,11 @@ nuid2 has these properties:
 |                                                 |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-              Figure 1: nuid2 Field and bit Layout
+              Figure 1: nuid2 field and bit layout
 ```
 
-We encode this information on what we'll call base64'. That is a url safe, sortable base64
-representation.
-
-
-This is base64' alphabet in order:
+We encode this in what we call base64': a URL-safe, sortable base64
+representation. Its alphabet, in order:
 
 ```
 -, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
@@ -80,15 +113,14 @@ _,
 a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z
 ```
 
-We took Erlang/OTP base64 module and modified it to meet these properties.
-It's a pretty amazing code. Thanks.
+It is the Erlang/OTP base64 module reordered to preserve byte ordering.
 
-We also came up with nuid1, having just these properties
+`nuid1` is a lighter identifier with these properties:
 
-- Lexicographically sortable. It can be used on systems that uuid6 were used. All nuid1 identifiers generated after a uuid6 has been generated will be lexicographically greater.
-- 16 cryptographically strong random bytes. (128bits)
-- It is unique (at least has a low collision probability).
-
+- Lexicographically sortable. It can replace UUID v6: every `nuid1`
+  generated after a UUID v6 sorts after it.
+- Sixteen cryptographically strong random bytes (128 bits).
+- Unique (or at least a low collision probability).
 
 ```
  0                   1                   2                   3
@@ -97,89 +129,24 @@ We also came up with nuid1, having just these properties
 |    Hex unique time in us  |-|       base64' 16 random bytes             |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-              Figure 2: nuid1 Field and Byte Layout
+              Figure 2: nuid1 field and byte layout
 
-(*) where dash at byte 14 is the 45 ASCII character
-
-```
-
-
-## API
-`nuid` exposes utilities via its API that allows you to:
-
-| Function | Description |
-| --------  | ------------ |
-| `nuid:uuid1/0` | Generates RFC 4122 uuid v1 |
-| `nuid:uuid3/2` | Generates RFC 4122 uuid v3 |
-| `nuid:uuid4/0` | Generates RFC 4122 uuid v4 |
-| `nuid:uuid5/2` | Generates RFC 4122 uuid v5 |
-| `nuid:uuid6/0` | Generates draft-ietf-uuidrev-rfc4122bis uuid v6 |
-| `nuid:uuid7/0` | Generates draft-ietf-uuidrev-rfc4122bis uuid v7 |
-| `nuid:uuid8/1` | Generates draft-ietf-uuidrev-rfc4122bis uuid v8 |
-| `nuid:uuid8/3` | Generates draft-ietf-uuidrev-rfc4122bis uuid v8 |
-| `nuid:nil_uuid/0` | Generates RFC 4122 nil uuid |
-| `nuid:max_uuid/0` | Generates draft-ietf-uuidrev-rfc4122bis max uuid |
-| `nuid:uuid1_info/1` | Gets info from uuid1 (generation time, node, unique) |
-| `nuid:uuid6_info/1` | Gets info from uuid6 (generation time, node, unique) |
-| `nuid:uuid7_info/1` | Gets info from uuid7 (generation time) |
-| `nuid:nuid1/0` | Generates Noma nuid1 |
-| `nuid:nuid2/0` | Generates Noma nuid2 |
-| `nuid:nuid1_info/1` | Gets info from nuid1 (generation time) |
-| `nuid:nuid2_info/1` | Gets info from nuid2 (generation time, node) |
-
-
-## Implementation
-
-
-## A simple example
-
-```erl
-1> nuid:uuid1().
-<<"07e826fe-ed86-1060-8000-00001430cc44">>
-2> nuid:uuid3(url, <<"https://www.nomasystems.com">>).
-<<"67805345-d49e-3058-9ad3-160686e8ee2a">>
-3> nuid:uuid4().                                      
-<<"37a9e737-f680-44a9-b83d-a517ec758b75">>
-4> nuid:uuid5(dns, <<"nomasystems.com">>).
-<<"cefe05b2-95ca-5b0a-ad06-9b3f2b38e532">>
-5> nuid:uuid6().                         
-<<"0607e826-ff71-6410-8000-00002430cc44">>
-6> nuid:uuid7().
-<<"018b3d7a-9f9a-7577-adb2-08761e3d87f7">>
-7> nuid:uuid8(<<16#f, 16#e, 16#d, 16#c, 16#b, 16#a, 16#9, 16#8, 16#7, 16#6, 16#5, 16#4, 16#3, 16#2, 16#1, 16#0>>).
-<<"0f0e0d0c-0b0a-8908-8706-050403020100">>
-8> nuid:nuid1().
-<<"607e826ff7388-4WX7g2peZpWw9QAIpkRp-F">>
-9> nuid:nuid2().
-<<"OHtpP-----Fkn3F6JaT5Kxnm_NAiDzFgGMzc">>
-10> nuid:uuid1_info(nuid:uuid1()).
-{uuidInfo,{{2023,10,17},{11,52,8}},5,nonode@nohost}
-11> nuid:uuid6_info(nuid:uuid6()).
-{uuidInfo,{{2023,10,17},{11,52,8}},6,nonode@nohost}
-12> nuid:nuid1_info(nuid:nuid1()).
-{{2023,10,17},{11,52,8}}
-13> nuid:nuid2_info(nuid:nuid2()).
-{nonode@nohost,{{2023,10,17},{11,52,8}}}
-14> nuid:nil_uuid(nuid:nuid2()).
-<<"00000000-0000-0000-0000-000000000000">>
-15> nuid:max_uuid(nuid:nuid2()).
-<<"FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF">>.
+(*) the dash at byte 14 is ASCII 45
 ```
 
 ## Benchmarks
 
-Run a rebar3 shell using the `bench` profile:
+Run a `rebar3` shell using the `bench` profile:
+
 ```sh
 rebar3 as bench shell
 ```
-Run the following command:
-```erl
+
+```erlang
 1> nuid_bench:bench().
 ```
 
-This benchmark compares different unique identifiers generated by `nuid`.
-
-### Results
+This benchmark compares the different identifiers generated by `nuid`.
 
 ```
 nuid1 creation time: 1.83 (us)
@@ -190,6 +157,10 @@ uuid6 creation time: 0.91 (us)
 uuid7 creation time: 1.82 (us)
 ```
 
-## Support
+## Documentation
 
-Any doubt or suggestion? Please, check out [our issue tracker](https://github.com/nomasystems/nuid/issues).
+[nuid on HexDocs](https://hexdocs.pm/nuid)
+
+## License
+
+Apache License 2.0
