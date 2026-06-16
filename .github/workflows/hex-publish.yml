@@ -1,0 +1,50 @@
+name: Publish to Hex
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+env:
+  OTP_VERSION: 27.2
+  REBAR3_VERSION: 3.24.0
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: erlef/setup-beam@v1.24.0
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          rebar3-version: ${{ env.REBAR3_VERSION }}
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/rebar3
+            _build
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ env.OTP_VERSION }}-${{ env.REBAR3_VERSION }}-${{ hashFiles('rebar.config', 'rebar.lock') }}
+
+      - name: Verify tag matches app version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          APP_VSN=$(awk -F'"' '/{vsn,/ {print $2}' src/nuid.app.src)
+          if [ "$TAG" != "$APP_VSN" ]; then
+            echo "Release tag '$TAG' does not match app vsn '$APP_VSN'"
+            exit 1
+          fi
+
+      - run: rebar3 check
+
+      - run: rebar3 test
+
+      - name: Publish package and docs
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+        run: rebar3 hex publish --repo hexpm --yes
