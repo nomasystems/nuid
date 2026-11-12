@@ -8,29 +8,31 @@ on:
 permissions:
   contents: read
 
+env:
+  REBAR3_VERSION: '3.28.0'
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    name: OTP ${{ matrix.otp }}
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     strategy:
+      fail-fast: false
       matrix:
-        combo:
-        - otp-version: '27.0'
-          rebar3-version: '3.24.0'
-        - otp-version: '28.0'
-          rebar3-version: '3.25.0'
+        otp: ['27', '28', '29']
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: erlef/setup-beam@v1.24.0
+      - uses: erlef/setup-beam@v1.24.1
+        id: setup-beam
         with:
-          otp-version: ${{ matrix.combo.otp-version }}
-          rebar3-version: ${{ matrix.combo.rebar3-version }}
+          otp-version: ${{ matrix.otp }}
+          rebar3-version: ${{ env.REBAR3_VERSION }}
 
       - uses: actions/cache@v4
         id: rebar3-cache
@@ -38,7 +40,7 @@ jobs:
           path: |
             ~/.cache/rebar3
             _build
-          key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.combo.otp-version }}-${{ matrix.combo.rebar3-version }}-${{ hashFiles('rebar.config', 'rebar.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.rebar3-version }}-${{ hashFiles('rebar.config', 'rebar.lock') }}
 
       - run: rebar3 check
 
@@ -47,4 +49,12 @@ jobs:
       - uses: test-summary/action@v2
         if: always()
         with:
-          paths: '_build/test/logs/**/report.xml'
+          paths: '_build/test/logs/**/junit_report.xml'
+
+  ci-ok:
+    if: always()
+    needs: [check]
+    runs-on: ubuntu-26.04
+    timeout-minutes: 1
+    steps:
+      - run: test "${{ needs.check.result }}" = success

@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: erlef/setup-beam@v1.24.0
+      - uses: erlef/setup-beam@v1.24.1
         with:
           otp-version: ${{ env.OTP_VERSION }}
           rebar3-version: ${{ env.REBAR3_VERSION }}

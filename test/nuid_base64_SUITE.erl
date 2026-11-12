@@ -20,6 +20,9 @@
 
 -module(nuid_base64_SUITE).
 
+%%% INCLUDE FILES
+-include_lib("stdlib/include/assert.hrl").
+
 %%% EXTERNAL EXPORTS
 -compile([export_all, nowarn_export_all]).
 
@@ -62,7 +65,7 @@ nuid_base64_otp_5635(Config) when is_list(Config) ->
 %%-------------------------------------------------------------------------
 %% OTP-6279: Make sure illegal characters are rejected when decoding.
 nuid_base64_otp_6279(Config) when is_list(Config) ->
-    {'EXIT', _} = (catch nuid_base64:decode("dGVzda==a")),
+    ?assertError(_, nuid_base64:decode("dGVzda==a")),
     ok.
 %%-------------------------------------------------------------------------
 %% Encode and decode big binaries.
@@ -78,12 +81,12 @@ big(Config) when is_list(Config) ->
 illegal(Config) when is_list(Config) ->
     %% A few samples with different error reasons. Nothing can be
     %% assumed about the reason for the crash.
-    {'EXIT', _} = (catch nuid_base64:decode("()")),
-    {'EXIT', _} = (catch nuid_base64:decode(<<19:8, 20:8, 21:8, 22:8>>)),
-    {'EXIT', _} = (catch nuid_base64:decode(<<19, 20, 21, 22>>)),
+    ?assertError(_, nuid_base64:decode("()")),
+    ?assertError(_, nuid_base64:decode(<<19:8, 20:8, 21:8, 22:8>>)),
+    ?assertError(_, nuid_base64:decode(<<19, 20, 21, 22>>)),
     List = "testt list",
-    {'EXIT', _} = (catch nuid_base64:encode(List)),
-    {'EXIT', _} = (catch nuid_base64:decode(List)),
+    ?assertError(_, nuid_base64:encode(List)),
+    ?assertError(_, nuid_base64:decode(List)),
     ok.
 
 %%-------------------------------------------------------------------------
