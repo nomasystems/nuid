@@ -17,17 +17,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
+      fail-fast: false
       matrix:
         combo:
-        - otp-version: '27.0'
-          rebar3-version: '3.24.0'
-        - otp-version: '28.0'
-          rebar3-version: '3.25.0'
+        - otp-version: '27'
+          rebar3-version: '3.28.0'
+        - otp-version: '28'
+          rebar3-version: '3.28.0'
+        - otp-version: '29'
+          rebar3-version: '3.28.0'
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: erlef/setup-beam@v1.24.0
+        id: setup-beam
         with:
           otp-version: ${{ matrix.combo.otp-version }}
           rebar3-version: ${{ matrix.combo.rebar3-version }}
@@ -38,7 +42,7 @@ jobs:
           path: |
             ~/.cache/rebar3
             _build
-          key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.combo.otp-version }}-${{ matrix.combo.rebar3-version }}-${{ hashFiles('rebar.config', 'rebar.lock') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.rebar3-version }}-${{ hashFiles('rebar.config', 'rebar.lock') }}
 
       - run: rebar3 check
 
@@ -47,4 +51,4 @@ jobs:
       - uses: test-summary/action@v2
         if: always()
         with:
-          paths: '_build/test/logs/**/report.xml'
+          paths: '_build/test/logs/**/junit_report.xml'
